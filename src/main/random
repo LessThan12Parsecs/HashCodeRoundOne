@@ -1,13 +1,14 @@
-
+import org.chocosolver.solver.Model;
+import org.chocosolver.solver.variables.IntVar;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 
 public class Main {
     public static void main(String[] args) {
+
+        HashMap<Coordinates, Character> map = new HashMap<Coordinates, Character>();
+        map.put(new Coordinates(65, 72), "Dan");
 
         /*
         ● R – number of rows of the grid (1≤R≤10000)
@@ -18,11 +19,20 @@ public class Main {
         ● T – number of steps in the simulation (1 ≤ T ≤ 109)
          */
 
-        Configuration conf = null;
+        final int R = 0;
+        final int C = 0;
+        final int F = 0;
+        final int N = 0;
+        final int B = 0;
+        final int T = 0;
+
+
+
+
+
 
         String fileName = "/Users/ema/IdeaProjects/myapp/src/main/java/example.in";
         String line = null;
-        List<Ride> rides = new ArrayList<>();
 
         try{
             FileReader fr = new FileReader(fileName);
@@ -30,32 +40,8 @@ public class Main {
             BufferedReader bufferedReader =
                     new BufferedReader(fr);
 
-            int lineNumber = 0;
-
             while((line = bufferedReader.readLine()) != null) {
-                List<Integer> elements = new ArrayList<>();
-                System.out.println(line + "   " + lineNumber);
-                String[] splitFirstLine = line.split(" ");
-                Arrays.stream(splitFirstLine).forEach(string -> elements.add(Integer.valueOf(string)));
-
-                // First row configuration
-                if (lineNumber == 0) {
-
-                    conf = new Configuration(elements.get(0), elements.get(1), elements.get(2), elements.get(3), elements.get(4), elements.get(4));
-                } else {
-                    Coordinates start = new Coordinates(elements.get(0), elements.get(1));
-                    Coordinates finish = new Coordinates(elements.get(2), elements.get(3));
-                    Ride ride = new Ride(lineNumber - 1, start, finish, elements.get(4), elements.get(5));
-                    rides.add(ride);
-
-
-
-                }
-
-                HashMap<Coordinates, String> map = new HashMap<Coordinates, String>();
-                map.put(new Coordinates(65, 72), "Dan");
-
-                lineNumber++;
+                System.out.println(line);
             }
 
             // Always close files.
@@ -75,5 +61,21 @@ public class Main {
         }
 
 
+        /Ç
+        // 1. Create a Model
+        Model model = new Model("practice problem");
+        // 2. Create variables
+        IntVar r = model.intVar("R", 1, 1000);                 // Rows in [1,1000]
+        IntVar c = model.intVar("C", 1,1000);   // Column in [1,1000]
+        IntVar l = model.intVar("L", 1,1000);   //  Minimum Ingredients in [1,1000]
+        IntVar h = model.intVar("H", 1,1000);   // Maximumn total number of cells in a slice in [1,1000]
+        // 3. Post constraints
+        model.arithm(r, "+", c, "<", 5).post(); // x + y < 5
+        model.times(r,c,4).post();              // x * y = 4
+        // 4. Solve the problem
+        model.getSolver().solve();
+        // 5. Print the solution
+        System.out.println(r); // Prints X = 2
+        System.out.println(c); // Prints Y = 2
     }
 }
