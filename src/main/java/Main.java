@@ -1,9 +1,6 @@
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 
 public class Main {
@@ -14,6 +11,8 @@ public class Main {
 
         Configuration conf = null;
         List<Ride> rides = new ArrayList<>();
+        LinkedHashMap<Integer, List<Ride>> earliestStartsPositions = new LinkedHashMap<>();
+        Coordinates emptyCoordinates = new Coordinates(0,0);
 
         try {
             FileReader fr = new FileReader(fileName);
@@ -22,6 +21,7 @@ public class Main {
                     new BufferedReader(fr);
 
             int lineNumber = 0;
+            List<Ride> ridesForMap = new ArrayList<>();
 
             while((line = bufferedReader.readLine()) != null) {
                 List<Integer> elements = new ArrayList<>();
@@ -33,16 +33,23 @@ public class Main {
                 if (lineNumber == 0) {
                     conf = new Configuration(elements.get(0), elements.get(1), elements.get(2), elements.get(3), elements.get(4), elements.get(4));
                 } else {
+
                     Coordinates start = new Coordinates(elements.get(0), elements.get(1));
                     Coordinates finish = new Coordinates(elements.get(2), elements.get(3));
                     Ride ride = new Ride(lineNumber - 1, start, finish, elements.get(4), elements.get(5));
                     rides.add(ride);
+
+                    if (earliestStartsPositions.containsKey(ride.earliestStart)) {
+                        ridesForMap = earliestStartsPositions.get(ride.getEarliestStart());
+                        ridesForMap.add(ride);
+                        earliestStartsPositions.put(ride.getEarliestStart(), ridesForMap);
+                    } else {
+                        ridesForMap = new ArrayList<>();
+                        ridesForMap.add(ride);
+                        earliestStartsPositions.put(ride.getEarliestStart(), ridesForMap);
+                    }
+
                 }
-
-                //HashMap<Coordinates, String> map = new HashMap<Coordinates, String>();
-                //map.put(new Coordinates(65, 72), "Dan");
-
-                System.out.println(rides.toString());
 
                 lineNumber++;
             }
@@ -63,8 +70,36 @@ public class Main {
             // ex.printStackTrace();
         }
 
+        Car cars[] = new Car[conf.getVehicles()];
+        Car initCar = new Car(emptyCoordinates, 0);
 
-        rides.forEach(ride->System.out.println(ride.getEarliestStart()));
+        for (int i = 0; i < conf.getVehicles(); i++) {
+            cars[i] = initCar;
+        }
+
+        //rides.forEach(ride->System.out.println(ride.getEarliestStart()));
+        for (Map.Entry<Integer, List<Ride>> entry : earliestStartsPositions.entrySet()) {
+            Integer key = entry.getKey();
+            List<Ride> ridesList = entry.getValue();
+
+            for (Ride ride : ridesList) {
+                int start = ride.getEarliestStart();
+                for (int i = 0; i < conf.getVehicles(); i++) {
+                    if (cars[i].getTimeStep() <= start) {
+                        System.out.println(cars[i] + " " + i);
+                        cars[i].setPosition(ride.getFinish());
+                        cars[i].setTimeStep(ride.getLength() + ride.getEarliestStart());
+                        cars[i].addSolution(ride.getId());
+                    }
+                }
+            }
+        }
+
+
+        for (int i = 0; i < conf.getVehicles(); i++) {
+            System.out.println(cars[i].getSolution());
+        }
+
 
     }
 }
