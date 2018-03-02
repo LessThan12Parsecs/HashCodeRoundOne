@@ -71,15 +71,47 @@ public class Main {
         }
 
         Car cars[] = new Car[conf.getVehicles()];
-        Car initCar = new Car(emptyCoordinates, 0);
+
 
         for (int i = 0; i < conf.getVehicles(); i++) {
+            Car initCar = new Car(emptyCoordinates, 0);
             cars[i] = initCar;
         }
 
-        //rides.forEach(ride->System.out.println(ride.getEarliestStart()));
+
+        Map<Integer, List<Ride>> sortedMap = new LinkedHashMap<Integer, List<Ride>>();
+
         for (Map.Entry<Integer, List<Ride>> entry : earliestStartsPositions.entrySet()) {
-            Integer key = entry.getKey();
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+
+        Iterator<Map.Entry<Integer, List<Ride>>> entries = sortedMap.entrySet().iterator();
+        while (entries.hasNext()) {
+            //Integer key = entry.getKey();
+            Map.Entry<Integer, List<Ride>> entry = entries.next();
+            List<Ride> ridesList = entry.getValue();
+
+            for (Ride ride : ridesList) {
+                int start = ride.getEarliestStart();
+
+
+                for (int i = 0; i < conf.getVehicles(); i++) {
+                    if (cars[i].getTimeStep() <= start) {
+                        //System.out.println(cars[i] + " " + i);
+                        cars[i].setPosition(ride.getFinish());
+                        cars[i].setTimeStep(ride.getLength() + ride.getEarliestStart());
+                        cars[i].addSolution(ride.getId());
+
+
+
+                    }
+                }
+            }
+        }
+
+/*        //rides.forEach(ride->System.out.println(ride.getEarliestStart()));
+        for (Map.Entry<Integer, List<Ride>> entry : sortedMap.entrySet()) {
+            //Integer key = entry.getKey();
             List<Ride> ridesList = entry.getValue();
 
             for (Ride ride : ridesList) {
@@ -87,19 +119,48 @@ public class Main {
                 for (int i = 0; i < conf.getVehicles(); i++) {
                     if (cars[i].getTimeStep() <= start) {
                         System.out.println(cars[i] + " " + i);
-                        cars[i].setPosition(ride.getFinish());
+                        *//*cars[i].setPosition(ride.getFinish());
                         cars[i].setTimeStep(ride.getLength() + ride.getEarliestStart());
-                        cars[i].addSolution(ride.getId());
+                        cars[i].addSolution(ride.getId());*//*
+
+                        Car car = new Car(ride.getFinish(), ride.getLength() + ride.getEarliestStart());
+                        car.addSolution(ride.getId());
+
+                        cars[i] = car;
+
                     }
                 }
             }
-        }
-
+        }*/
 
         for (int i = 0; i < conf.getVehicles(); i++) {
-            System.out.println(cars[i].getSolution());
+
+
+            System.out.println("Car " + i + " ");
+
+            for (int n:a) {
+                System.out.println(n + " ");
+            }
+
+            System.out.println();
         }
 
 
+        Writer writer = null;
+
+        for (int i = 0; i < conf.getVehicles(); i++) {
+            List<Integer> a = cars[i].getSolution();
+            try {
+                writer = new BufferedWriter(new OutputStreamWriter(
+                        new FileOutputStream("result.out"), "utf-8"));
+                for (int n : a) {
+                    writer.write(cars[i].getSolution().size() + " " + n + " ");
+                }
+            }
+        } catch (IOException ex) {
+            // Report
+        } finally {
+            try {writer.close();} catch (Exception ex) {/*ignore*/}
+        }
     }
 }
